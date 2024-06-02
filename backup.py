@@ -46,7 +46,6 @@ def get_connected_device():#procurando o rádio pelo MAC
 
 
 
-
 while(1):
     print("\n1: Iniciar")
     print("\n2: User/passw")    

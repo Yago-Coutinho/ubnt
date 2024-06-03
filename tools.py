@@ -21,12 +21,10 @@ def send_config(ssh ,config_file):
 
 
 def ssh_connect(ip, username, password):
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip, username=username, password=password)
-    except:
-        return -1
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(ip, username=username, password=password)
+    
     
     return ssh
 
@@ -40,5 +38,7 @@ def get_connected_device(prefixo_mac):#procurando o rádio pelo MAC
     if mac_position>0:
         mac_address = arp_output[mac_position:mac_position+17]
         ip_address = arp_output[mac_position-22:mac_position].replace(" ", "")
+        return ip_address, mac_address
+    else:
+        return None    
     
-    return ip_address, mac_address

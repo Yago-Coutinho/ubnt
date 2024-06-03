@@ -8,32 +8,32 @@ mac = "dc-9f-db"
 
 class Backup():
     def __init__(self):
+        self.user = user
+        self.passw = passw
         pass
     
 
     def form(self):
-        ip_device = [0, 0]
+        ip_device = None
 
         for i in range(1, 4):#buscar mac com ip correspondente
             ip_device = tools.get_connected_device(mac)
             print(f"\n>> {i} Procurando mac, prefixo: {mac}")
             
-            if ip_device[0] == 0:#se não encontrar
-                print("\n>> mac não encontrado")
+            if ip_device == None:#se não encontrar
+                print(">> mac não encontrado")
                 time.sleep(2)
 
-            else: 
-                break
+            elif ip_device != None:#função (tools.get_connected_device) retorna zero caso não encontre o mac
+                ssh_obj = tools.ssh_connect(ip_device[0], self.user, self.passw)#iniciando conexão ssh
+                
+                if ssh_obj != -1:#função (tools.ssh_connect) retorna -1 se ouver erro
+                    send = tools.send_config(ssh_obj, config_file)#envia arquivo de configuração
+                else:
+                    print("\n>> Falha na conexão ssh")
             
 
-        if ip_device != 0:#função (tools.get_connected_device) retorna zero caso não encontre o mac
-            ssh_obj = tools.ssh_connect(ip_device[0], user, passw)#iniciando conexão ssh
-            
-            if ssh_obj != -1:#função (tools.ssh_connect) retorna -1 se ouver erro
-                send = tools.send_config(ssh_obj, config_file)#envia arquivo de configuração
-            else:
-                print("\n>> Falha na conexão ssh")
-
+        
 
 class Manual():
     def __init__(self):

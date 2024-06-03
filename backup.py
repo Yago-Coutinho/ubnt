@@ -1,72 +1,94 @@
-import subprocess
-import re
-import ipaddress
-import paramiko
-from scp import SCPClient
+import tools
+import time
 
 config_file = 'C:\\setup.cfg'
 user = "ubnt"
 passw = "ubnt"
+mac = "dc-9f-db"
 
-def ssh_connect_and_send_config(ip, username, password, config_file):
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip, username=username, password=password)
-    except:
-        print("conexão não concluida")
-        return -1
+class Backup():
+    def __init__(self):
+        pass
     
-    print("\n>> configurando equipamento")
-    with SCPClient(ssh.get_transport()) as scp:
-        scp.put(config_file, '/tmp/setup.cfg')
 
-    stdin, stdout, stderr = ssh.exec_command('cat /tmp/setup.cfg > /tmp/system.cfg && cfgmtd -w && reboot')
-    
-    print(stdout.read().decode())
-    print(stderr.read().decode())
-    print("\n>> reboot")
+    def form(self):
+        ip_device = [0, 0]
 
-    ssh.close()
-    return 1
+        for i in range(1, 4):#buscar mac com ip correspondente
+            ip_device = tools.get_connected_device(mac)
+            print(f"\n>> {i} Procurando mac, prefixo: {mac}")
+            
+            if ip_device[0] == 0:#se não encontrar
+                print("\n>> mac não encontrado")
+                time.sleep(2)
 
+            else: 
+                break
+            
 
-def get_connected_device():#procurando o rádio pelo MAC
-    mac_address = "0"
-    ip_address = "0"
-    
-    arp_output = subprocess.check_output(["arp", "-a"]).decode("latin-1")
-
-    mac_position = arp_output.find("dc-9f-db")
-    if mac_position>0:
-        mac_address = arp_output[mac_position:mac_position+17]
-        ip_address = arp_output[mac_position-22:mac_position].replace(" ", "")
-    
-    return ip_address, mac_address
+        if ip_device != 0:#função (tools.get_connected_device) retorna zero caso não encontre o mac
+            ssh_obj = tools.ssh_connect(ip_device[0], user, passw)#iniciando conexão ssh
+            
+            if ssh_obj != -1:#função (tools.ssh_connect) retorna -1 se ouver erro
+                send = tools.send_config(ssh_obj, config_file)#envia arquivo de configuração
+            else:
+                print("\n>> Falha na conexão ssh")
 
 
+class Manual():
+    def __init__(self):
+        self.conf = config_file
+        self.mac = mac
+        self.user = user
+        self.passw = passw
+        pass
+
+    def form(self):
+        print("\n\n")
+        print("1. alterar user/passw")
+        print("2. alterar alterar caminho do arquivo de configuração")
+        print("3. alterar prefixo do mac")
+        
+        opc = str(input("\n>>: "))
+
+        match opc:
+            case "1":                
+                global user
+                global passw
+
+                print(f"\n {self.user}")
+                user = str(input("usuário: "))
+                passw = str(input("passw: "))
+            
+            case "2":
+                global config_file
+
+                print(f"\n caminho atual: {self.conf}")
+                config_file = str(input(">>: "))
+            
+            case "3":
+                global mac
+
+                print(f"\n prefixo mac atual: {self.mac}")
+                mac = str(input(">>: "))
 
 while(1):
-    print("\n1: Iniciar")
-    print("\n2: User/passw")    
-    opc = input("\n>>: ")
-    
-    if str(opc) == "1":
-        for i in range(4):
-            connected_device = get_connected_device()#obtendo ip e MAC do rádio
-            if connected_device:
-                print("\n>> MAC encontrado")
-                sshreturn = ssh_connect_and_send_config(connected_device[0], "ubnt", "ubnt", config_file)
-                if sshreturn == 1:
-                    break
-                
-            else:
-                print("\n>> ERRO: MAC não encontrado")
-                pass
-    
-    elif str(opc) == 2:
-        user = input("\nuser: ")
-        passw = input("\npassw: ")
+
+    print("\n###   Backup auto   ###\n\n")
+    print(" 1. Backup automático")
+    print(" 2. Configuração manual")
+    print(" 3. sair")
+
+    opc = str(input("\n>>>: "))
+
+    match opc:
+        case "1":
+            backup = Backup()
+            backup.form()
         
-
-
+        case "2":
+            manual = Manual()
+            manual.form()
+        
+        case "3":
+            break

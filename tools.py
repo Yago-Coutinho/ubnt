@@ -2,7 +2,7 @@ import subprocess
 import ipaddress
 import paramiko
 from scp import SCPClient
-
+import time
 
 def send_config(ssh ,config_file):
     
@@ -20,13 +20,19 @@ def send_config(ssh ,config_file):
 
 
 
-def ssh_connect(ip, username, password):
+def ssh_connect(ip, username, password):#faz a conexão via ssh
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(ip, username=username, password=password)
+    try:
+        ssh.connect(ip, username=username, password=password)
     
+    except paramiko.ssh_exception.AuthenticationException:
+        return 0    
     
-    return ssh
+    except:
+        return -1
+    
+    return ssh, 1
 
 def get_connected_device(prefixo_mac):#procurando o rádio pelo prefixo MAC na tabela arp, retorna (ip, mac)
     arp_output = subprocess.check_output(["arp", "-a"]).decode("latin-1")
@@ -39,3 +45,21 @@ def get_connected_device(prefixo_mac):#procurando o rádio pelo prefixo MAC na t
     else:
         return None    
     
+
+  
+def ping(cfg):
+    with open(cfg) as file:
+        cfg = file.read()       
+        posi = cfg.find("netconf.2.ip=192.168")
+        ip = cfg[posi+13:posi+24]
+        time.sleep(5)
+
+        while(True):
+            try:
+                retorno = subprocess.check_output(args=["ping", ip], shell=True).decode("latin-1")
+                print("")
+                print(retorno)
+                break
+
+            except:
+                print("ip não encontrado")

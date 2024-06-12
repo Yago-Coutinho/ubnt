@@ -1,1 +1,6 @@
-{"config_file": "setup.cfg", "user": "ubnt", "passw": "ubnt", "mac": "dc-9f-db"}
+{
+    "config_file": "ABCD.cfg",
+    "user": "wnet",
+    "passw": "01973",
+    "mac": "dc-9f-db"
+}

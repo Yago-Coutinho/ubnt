@@ -2,38 +2,55 @@ import tools
 import time
 import structSys as sys
 import json
+import subprocess
+import paramiko
 
 
 with open("cfg.json") as file:
     data = json.load(file)
-  
 
 
 
 class Backup(sys.Form):
     def __init__(self):
         super().__init__()
-        self.call["iniciar"] = "self.form()"
-    
 
+        self.call["iniciar"] = "self.form()"
+
+    def inRun(self):
+        return self.form()
+    
     def form(self):
         ip_device = None
 
-        for i in range(1, 4):#buscar mac com ip correspondente
+        for i in range(1, 4):                                                                      #buscar mac com ip correspondente
             ip_device = tools.get_connected_device(data["mac"])
             print(f"\n>> {i} Procurando mac, prefixo: {data["mac"]}")
             
-            if ip_device == None:#se não encontrar
-                print(">> mac não encontrado")
+            if ip_device == None:                                                                  #se não encontrar
+                print("\n>> mac não encontrado")
                 time.sleep(2)
 
-            elif ip_device != None:#função (tools.get_connected_device) retorna zero caso não encontre o mac
-                ssh_obj = tools.ssh_connect(ip_device[0], self.user, self.passw)#iniciando conexão ssh
+            else:
+                ssh_obj, ret = tools.ssh_connect(ip_device[0], data["user"], data["passw"])        #iniciando conexão ssh
                 
-                if ssh_obj != -1:#função (tools.ssh_connect) retorna -1 se ouver erro
-                    send = tools.send_config(ssh_obj, data["config_file"])#envia arquivo de configuração
-                else:
+                if ret == 1:
+                    print("\n upload de arquivo .cfg")                                                  
+                    tools.send_config(ssh_obj, data["config_file"])
+                    tools.ping(data["config_file"]) 
+                    print("\n SUCESSO...")
+                    input("APERTE ENTER")
+                    break
+
+
+
+                elif ssh_obj == 0:
+                    print("\n>> senha incorreta")
+                elif ssh_obj == -1:
                     print("\n>> Falha na conexão ssh")
+
+
+    
 
 
 class Manual(sys.Form):
@@ -45,30 +62,32 @@ class Manual(sys.Form):
 
     
     def alterar_login_ssh(self):
-        print(f"\n {data["user"]}/{data["passw"]}")
+        print(f"\nlogin atual: {data["user"]}/{data["passw"]}")
         data["user"] = str(input("usuário: "))
         data["passw"] = str(input("passw: "))
-        with open("cfg.json", "w") as file:
-            json.dump(data, file)
+        self.saveJson()
 
     def path_cfg(self):
         
-        print(f"\n caminho atual: {data["config_file"]}")
+        print(f"\ncaminho atual: {data["config_file"]}")
         data["config_file"] = str(input(">>: "))
-        with open("cfg.json", "w") as file:
-            json.dump(data, file)
+        self.saveJson()
 
     def prefix_mac(self):
-        print(f"\n prefixo mac atual: {data["mac"]}")
+        print(f"\nprefixo mac atual: {data["mac"]}")
         data["mac"] = str(input(">>: "))
+        self.saveJson()        
+
+    def saveJson(self):
         with open("cfg.json", "w") as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=4)
 
 
 
 class Inicio(sys.Form):
     def __init__(self):
         super().__init__()
+        self.voltar = "sair"
         self.call["Backup automático"] = "self.Backup_aut()"
         self.call["config manual"] = "self.manual()"
 

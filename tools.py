@@ -28,10 +28,7 @@ def ssh_connect(ip, username, password):
     
     return ssh
 
-def get_connected_device(prefixo_mac):#procurando o rádio pelo MAC
-    mac_address = "0"
-    ip_address = "0"
-    
+def get_connected_device(prefixo_mac):#procurando o rádio pelo prefixo MAC na tabela arp, retorna (ip, mac)
     arp_output = subprocess.check_output(["arp", "-a"]).decode("latin-1")
 
     mac_position = arp_output.find(prefixo_mac)

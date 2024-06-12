@@ -1,16 +1,18 @@
 import tools
 import time
+import structSys as sys
 
 config_file = 'C:\\setup.cfg'
 user = "ubnt"
 passw = "ubnt"
 mac = "dc-9f-db"
 
-class Backup():
+class Backup(sys.Form):
     def __init__(self):
+        super().__init__()
         self.user = user
         self.passw = passw
-        pass
+        self.call["iniciar"] = "self.form()"
     
 
     def form(self):
@@ -35,60 +37,55 @@ class Backup():
 
         
 
-class Manual():
+class Manual(sys.Form):
     def __init__(self):
+        super().__init__()
         self.conf = config_file
         self.mac = mac
         self.user = user
         self.passw = passw
-        pass
-
-    def form(self):
-        print("\n\n")
-        print("1. alterar user/passw")
-        print("2. alterar alterar caminho do arquivo de configuração")
-        print("3. alterar prefixo do mac")
         
-        opc = str(input("\n>>: "))
+        self.call["alterar login ssh"] = "self.alterar_login_ssh()"
+        self.call["alterar .cfg"] = "self.path_cfg()"
+        self.call["alterar prefixo MAC"] = "self.prefix_mac()"
 
-        match opc:
-            case "1":                
-                global user
-                global passw
+    
+    def alterar_login_ssh(self):
+        global user
+        global passw
+        print(f"\n {self.user}")
+        user = str(input("usuário: "))
+        passw = str(input("passw: "))
 
-                print(f"\n {self.user}")
-                user = str(input("usuário: "))
-                passw = str(input("passw: "))
-            
-            case "2":
-                global config_file
+    def path_cfg(self):
+        global config_file
+        print(f"\n caminho atual: {self.conf}")
+        config_file = str(input(">>: "))
 
-                print(f"\n caminho atual: {self.conf}")
-                config_file = str(input(">>: "))
-            
-            case "3":
-                global mac
+    def prefix_mac(self):
+        global mac
+        print(f"\n prefixo mac atual: {self.mac}")
+        mac = str(input(">>: "))
 
-                print(f"\n prefixo mac atual: {self.mac}")
-                mac = str(input(">>: "))
+
+
+class Inicio(sys.Form):
+    def __init__(self):
+        super().__init__()
+        self.call["Backup automático"] = "self.Backup_aut()"
+        self.call["config manual"] = "self.manual()"
+
+    def Backup_aut(self):
+        backup = Backup()
+        backup.inRun()
+
+    def manual(self):
+        manual = Manual()
+        manual.inRun()
+
+    def sair(self):
+        return exit()
 
 while(1):
-
-    print("\n###   Backup auto   ###\n\n")
-    print(" 1. Backup automático")
-    print(" 2. Configuração manual")
-    print(" 3. sair")
-
-    opc = str(input("\n>>>: "))
-
-    match opc:
-        case "1":
-            backup = Backup()
-            backup.form()
-        
-        case "2":
-            manual = Manual()
-            manual.form()
-        
-        case "3":
-            break
+    inicio = Inicio()
+    inicio.inRun()

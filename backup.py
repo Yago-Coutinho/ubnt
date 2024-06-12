@@ -1,17 +1,18 @@
 import tools
 import time
 import structSys as sys
+import json
 
-config_file = 'C:\\setup.cfg'
-user = "ubnt"
-passw = "ubnt"
-mac = "dc-9f-db"
+
+with open("cfg.json") as file:
+    data = json.load(file)
+  
+
+
 
 class Backup(sys.Form):
     def __init__(self):
         super().__init__()
-        self.user = user
-        self.passw = passw
         self.call["iniciar"] = "self.form()"
     
 
@@ -19,8 +20,8 @@ class Backup(sys.Form):
         ip_device = None
 
         for i in range(1, 4):#buscar mac com ip correspondente
-            ip_device = tools.get_connected_device(mac)
-            print(f"\n>> {i} Procurando mac, prefixo: {mac}")
+            ip_device = tools.get_connected_device(data["mac"])
+            print(f"\n>> {i} Procurando mac, prefixo: {data["mac"]}")
             
             if ip_device == None:#se não encontrar
                 print(">> mac não encontrado")
@@ -30,42 +31,38 @@ class Backup(sys.Form):
                 ssh_obj = tools.ssh_connect(ip_device[0], self.user, self.passw)#iniciando conexão ssh
                 
                 if ssh_obj != -1:#função (tools.ssh_connect) retorna -1 se ouver erro
-                    send = tools.send_config(ssh_obj, config_file)#envia arquivo de configuração
+                    send = tools.send_config(ssh_obj, data["config_file"])#envia arquivo de configuração
                 else:
                     print("\n>> Falha na conexão ssh")
-            
 
-        
 
 class Manual(sys.Form):
     def __init__(self):
         super().__init__()
-        self.conf = config_file
-        self.mac = mac
-        self.user = user
-        self.passw = passw
-        
         self.call["alterar login ssh"] = "self.alterar_login_ssh()"
         self.call["alterar .cfg"] = "self.path_cfg()"
         self.call["alterar prefixo MAC"] = "self.prefix_mac()"
 
     
     def alterar_login_ssh(self):
-        global user
-        global passw
-        print(f"\n {self.user}")
-        user = str(input("usuário: "))
-        passw = str(input("passw: "))
+        print(f"\n {data["user"]}/{data["passw"]}")
+        data["user"] = str(input("usuário: "))
+        data["passw"] = str(input("passw: "))
+        with open("cfg.json", "w") as file:
+            json.dump(data, file)
 
     def path_cfg(self):
-        global config_file
-        print(f"\n caminho atual: {self.conf}")
-        config_file = str(input(">>: "))
+        
+        print(f"\n caminho atual: {data["config_file"]}")
+        data["config_file"] = str(input(">>: "))
+        with open("cfg.json", "w") as file:
+            json.dump(data, file)
 
     def prefix_mac(self):
-        global mac
-        print(f"\n prefixo mac atual: {self.mac}")
-        mac = str(input(">>: "))
+        print(f"\n prefixo mac atual: {data["mac"]}")
+        data["mac"] = str(input(">>: "))
+        with open("cfg.json", "w") as file:
+            json.dump(data, file)
 
 
 

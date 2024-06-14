@@ -4,6 +4,7 @@ from scp import SCPClient
 import time
 import json
 
+
 def upload(ip, user, passw, config_file):
     ssh_obj, ret = ssh_connect(ip, user, passw)
                 
